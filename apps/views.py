@@ -35,7 +35,7 @@ class UserRegisterCreateApiView(CreateAPIView):
 
 
 @extend_schema(tags=['posts'])
-class ProductListCreateAPIView(ListCreateAPIView):
+class PostListCreateAPIView(ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostModelSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
@@ -60,7 +60,7 @@ class ProductListCreateAPIView(ListCreateAPIView):
 
 
 @extend_schema(tags=['posts'])
-class ProductRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+class PostRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostModelSerializer
     permission_classes = [IsAuthenticated, IsAuthor]
