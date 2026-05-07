@@ -14,3 +14,23 @@ class User(AbstractUser):
     role = CharField(max_length=15, choices=Role.choices, default=Role.READER)
 
     objects = CustomUserManager()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

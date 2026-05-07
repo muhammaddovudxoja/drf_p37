@@ -3,8 +3,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models import IntegerField, CharField, Model, ForeignKey, CASCADE, DecimalField, TextField, \
     DateTimeField, BooleanField, ManyToManyField, ExpressionWrapper, F, Manager, ImageField
 from django.db.models.constraints import UniqueConstraint
-
-
 # class User(Model):
 #     name = models.CharField(max_length=255)
 #     username = models.CharField(max_length=100)

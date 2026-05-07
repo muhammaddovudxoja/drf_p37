@@ -6,38 +6,69 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from apps.filters import ProductFilter, BookFilter
-from apps.models import User, Product, Favorite, Book
+from apps.filters import PostFilter
+from apps.models import User
+from apps.models.exammodels import Post, Like
 from apps.permissions import IsAuthor
-from apps.serializers import UserModelSerializer, ProductModelSerializer, BookModelSerializer, UserRegisterSerializer
+from apps.serializers import UserModelSerializer, UserRegisterSerializer, PostModelSerializer
 
 
-# from apps.models import Product, Customer, Order, OrderItem
-# from apps.serializers import ProductSerializer, CustomerSerializer, OrderSerializer, OrderItemSerializer
+@extend_schema(tags=['users'])
+class UserRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserModelSerializer
+    permission_classes = [IsAuthenticated]
 
 
-# from apps.filters import PostFilter, AlbumFilter, BookFilter
-# from apps.models import Post, Comment, Album, Photo, Todo, User, Book
-# from apps.serializers import PostModelSerializer, CommentModelSerializer, AlbumModelSerializer, PhotoModelSerializer, \
-#     TodoModelSerializer, UserModelSerializer, BookModelSerializer
+@extend_schema(tags=['users'])
+class UserListCreateAPIView(ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserModelSerializer
+    permission_classes = [IsAuthenticated]
 
-#
-# @extend_schema(tags=["posts"])
-# class PostListCreateAPIView(ListCreateAPIView):
-#     queryset = Post.objects.order_by("-id")
-#     serializer_class = PostModelSerializer
-#     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-#     filterset_class = PostFilter
-#     # filterset_fields = ['user__id', 'title']
-#     search_fields = ['title', 'body']
-#     ordering_fields = ['id', 'user__id']
-#
-#
-# @extend_schema(tags=["posts"])
-# class PostRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-#     queryset = Post.objects.all()
-#     serializer_class = PostModelSerializer
-#
+
+@extend_schema(tags=['users'])
+class UserRegisterCreateApiView(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserRegisterSerializer
+    permission_classes = [AllowAny]
+
+
+@extend_schema(tags=['posts'])
+class ProductListCreateAPIView(ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostModelSerializer
+    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
+    filterset_class = PostFilter
+    search_fields = ('title',)
+    ordering_fields = ('created_at',)
+    permission_classes = [IsAuthenticated, IsAuthor]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+
+        if user.is_authenticated:
+            key = Exists(Like.objects.filter(product_id=OuterRef('pk'), user=user))
+        else:
+            key = Value(False, BooleanField())
+
+        return qs.annotate(
+            likes_count=Count('favorites'),
+            is_liked=key
+        )
+
+
+@extend_schema(tags=['posts'])
+class ProductRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostModelSerializer
+    permission_classes = [IsAuthenticated, IsAuthor]
+
+
+
+
+
 #
 # @extend_schema(tags=["posts"])
 # class PostCommentListAPIView(ListAPIView):
@@ -217,80 +248,126 @@ from apps.serializers import UserModelSerializer, ProductModelSerializer, BookMo
 #     queryset = OrderItem.objects.all()
 #     serializer_class = OrderItemSerializer
 
-@extend_schema(tags=['users'])
-class UserRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserModelSerializer
-    permission_classes = [IsAuthenticated]
-
-
-@extend_schema(tags=['users'])
-class UserListCreateAPIView(ListCreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserModelSerializer
-    permission_classes = [IsAuthenticated]
-
-
-@extend_schema(tags=['products'])
-class ProductListCreateAPIView(ListCreateAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductModelSerializer
-    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-    filterset_class = ProductFilter
-    search_fields = ('title',)
-    ordering_fields = ('created_at',)
-    permission_classes = [IsAuthenticated, IsAuthor]
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        user = self.request.user
-
-        if user.is_authenticated:
-            key = Exists(Favorite.objects.filter(product_id=OuterRef('pk'), user=user))
-        else:
-            key = Value(False, BooleanField())
-
-        return qs.annotate(
-            favorite_count=Count('favorites'),
-            is_favorite=key
-        )
-
-
-@extend_schema(tags=['products'])
-class ProductRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductModelSerializer
-    permission_classes = [IsAuthenticated, IsAuthor]
 
 
 
-@extend_schema(tags=['books'])
-class BookListCreateAPIView(ListCreateAPIView):
-    queryset = Book.objects.annotate_with_availability()
-    serializer_class = BookModelSerializer
-    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-    filterset_class = BookFilter
-    search_fields = ('title',)
-    ordering_fields = ['rating', 'published_year', 'title', 'total_copies']
+#
+#
+# @extend_schema(tags=['products'])
+# class ProductListCreateAPIView(ListCreateAPIView):
+#     queryset = Product.objects.all()
+#     serializer_class = ProductModelSerializer
+#     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
+#     filterset_class = ProductFilter
+#     search_fields = ('title',)
+#     ordering_fields = ('created_at',)
+#     permission_classes = [IsAuthenticated, IsAuthor]
+#
+#     def get_queryset(self):
+#         qs = super().get_queryset()
+#         user = self.request.user
+#
+#         if user.is_authenticated:
+#             key = Exists(Favorite.objects.filter(product_id=OuterRef('pk'), user=user))
+#         else:
+#             key = Value(False, BooleanField())
+#
+#         return qs.annotate(
+#             favorite_count=Count('favorites'),
+#             is_favorite=key
+#         )
+#
+#
+# @extend_schema(tags=['products'])
+# class ProductRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+#     queryset = Product.objects.all()
+#     serializer_class = ProductModelSerializer
+#     permission_classes = [IsAuthenticated, IsAuthor]
+#
+#
+#
+# @extend_schema(tags=['books'])
+# class BookListCreateAPIView(ListCreateAPIView):
+#     queryset = Book.objects.annotate_with_availability()
+#     serializer_class = BookModelSerializer
+#     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
+#     filterset_class = BookFilter
+#     search_fields = ('title',)
+#     ordering_fields = ['rating', 'published_year', 'title', 'total_copies']
+#
+#     def get_queryset(self):
+#         return self.queryset.annotate_with_availability()
+#
+# @extend_schema(tags=['books'])
+# class BookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+#     queryset = Book.objects.annotate_with_availability()
+#     serializer_class = BookModelSerializer
+#
+#     def get_queryset(self):
+#         return self.queryset.annotate_with_availability()
+#
 
-    def get_queryset(self):
-        return self.queryset.annotate_with_availability()
 
-@extend_schema(tags=['books'])
-class BookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Book.objects.annotate_with_availability()
-    serializer_class = BookModelSerializer
+#
+#
+#
+# from django.db.models import OuterRef, Exists
+# from rest_framework.filters import SearchFilter, OrderingFilter
+# from rest_framework.generics import CreateAPIView
+# from rest_framework.viewsets import ModelViewSet
+# from drf_spectacular.utils import extend_schema
+#
+# from apps.models import Book, Course, Enrollment, Lesson
+# from apps.permissions import IsCourseOwnerOrEnrolled
+# from apps.serializers import BookSerializer, CourseSerializer, LessonSerializer, UserSerializer
+#
+#
+# @extend_schema(tags=('Book',))
+# class BookViewSet(ModelViewSet):
+#     queryset = Book.objects.annotate_with_availability()
+#     serializer_class = BookSerializer
+#
+#     filter_backends = (SearchFilter, OrderingFilter)
+#     search_fields = ('title', 'author__username')
+#     ordering_fields = ('price', 'published_year')
+#     ordering = ('-published_year', 'price')
+#
+#
+# @extend_schema(tags=('Course',))
+# class CourseViewSet(ModelViewSet):
+#     serializer_class = CourseSerializer
+#
+#     def get_queryset(self):
+#         queryset = Course.objects.all()
+#         user = self.request.user
+#
+#         if user.is_authenticated:
+#             unfinished = Enrollment.objects.filter(
+#                 user=user,
+#                 course=OuterRef('pk'),
+#                 is_completed=False
+#             )
+#
+#             if self.request.query_params.get('unfinished') == 'true':
+#                 queryset = queryset.filter(Exists(unfinished))
+#
+#             queryset = queryset.annotate(is_unfinished=Exists(unfinished))
+#
+#         return queryset
+#
+#
+# @extend_schema(tags=('Lesson',))
+# class LessonViewSet(ModelViewSet):
+#     queryset = Lesson.objects.all()
+#     serializer_class = LessonSerializer
+#     permission_classes = (IsCourseOwnerOrEnrolled,)
+#
 
-    def get_queryset(self):
-        return self.queryset.annotate_with_availability()
 
 
 
-@extend_schema(tags=['users'])
-class UserRegisterCreateApiView(CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserRegisterSerializer
-    permission_classes = [AllowAny]
+
+
 
 
 
