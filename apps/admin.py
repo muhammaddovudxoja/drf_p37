@@ -5,10 +5,6 @@ from django.contrib.auth.models import User, Group
 from apps.models import User
 from apps.models.exammodels import Post, Like
 
-
-# from apps.models import Post, Comment
-
-
 @admin.register(User)
 class UserModelAdmin(admin.ModelAdmin):
     list_display = ("first_name", "phone")

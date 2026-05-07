@@ -48,12 +48,19 @@ class PostModelViewSet(ModelViewSet):
     ordering_fields = ('-created_at', 'views_count')
     permission_classes = [IsAuthenticated, IsAuthor, CustomPostPermission]
 
+    qs = (
+        Post.objects
+        .select_related('author', 'category')
+        .prefetch_related('tags')
+    )
+
+
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
 
         if user.is_authenticated:
-            key = Exists(Like.objects.filter(product_id=OuterRef('pk'), user=user))
+            key = Exists(Like.objects.filter(post_id=OuterRef('pk'), user=user))
         else:
             key = Value(False, BooleanField())
 
@@ -61,6 +68,14 @@ class PostModelViewSet(ModelViewSet):
             likes_count=Count('favorites'),
             is_liked=key
         )
+
+        def get_queryset(self):
+            return (
+                Post.objects
+                .select_related('author', 'category')
+                .prefetch_related('tags')
+            )
+
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
