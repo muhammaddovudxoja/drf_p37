@@ -69,14 +69,6 @@ class PostModelViewSet(ModelViewSet):
             is_liked=key
         )
 
-        def get_queryset(self):
-            return (
-                Post.objects
-                .select_related('author', 'category')
-                .prefetch_related('tags')
-            )
-
-
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.views_count += 1

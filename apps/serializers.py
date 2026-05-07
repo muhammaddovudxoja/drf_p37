@@ -87,19 +87,6 @@ class PostModelSerializer(ModelSerializer):
 
         return instance
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 # #
 # # class CommentModelSerializer(ModelSerializer):
 # #     class Meta:
@@ -359,40 +346,3 @@ class PostModelSerializer(ModelSerializer):
 # #     class Meta:
 # #         model = Course
 # #         fields = ('id', 'title', 'description', 'instructor', 'is_published', 'is_unfinished')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
