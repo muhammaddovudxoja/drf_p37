@@ -5,6 +5,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.viewsets import ModelViewSet
 
 from apps.filters import PostFilter
 from apps.models import User
@@ -35,13 +36,13 @@ class UserRegisterCreateApiView(CreateAPIView):
 
 
 @extend_schema(tags=['posts'])
-class PostListCreateAPIView(ListCreateAPIView):
+class PostListCreateAPIView(ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostModelSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     filterset_class = PostFilter
     search_fields = ('title', 'content')
-    ordering_fields = ('created_at',)
+    ordering_fields = ('created_at', 'views_count')
     permission_classes = [IsAuthenticated, IsAuthor, CustomPostPermission]
 
     def get_queryset(self):
@@ -57,13 +58,6 @@ class PostListCreateAPIView(ListCreateAPIView):
             likes_count=Count('favorites'),
             is_liked=key
         )
-
-
-@extend_schema(tags=['posts'])
-class PostRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostModelSerializer
-    permission_classes = [IsAuthenticated, IsAuthor, CustomPostPermission]
 
 
 
