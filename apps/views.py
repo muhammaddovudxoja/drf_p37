@@ -2,9 +2,12 @@ from django.db.models import Exists, OuterRef, Value, BooleanField
 from django.db.models.aggregates import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.filters import PostFilter
@@ -36,13 +39,13 @@ class UserRegisterCreateApiView(CreateAPIView):
 
 
 @extend_schema(tags=['posts'])
-class PostListCreateAPIView(ModelViewSet):
+class PostModelViewSet(ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostModelSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     filterset_class = PostFilter
     search_fields = ('title', 'content')
-    ordering_fields = ('created_at', 'views_count')
+    ordering_fields = ('-created_at', 'views_count')
     permission_classes = [IsAuthenticated, IsAuthor, CustomPostPermission]
 
     def get_queryset(self):
@@ -59,9 +62,59 @@ class PostListCreateAPIView(ModelViewSet):
             is_liked=key
         )
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.views_count += 1
+        instance.save(update_fields=['views_count'])
 
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], url_path='my-posts')
+    def my_posts(self, request):
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "Ushbu sahifani ko'rish uchun avval tizimga kiring."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
+        user_posts = self.get_queryset().filter(author=request.user)
+
+        page = self.paginate_queryset(user_posts)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(user_posts, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], url_path='like')
+    def toggle_like(self, request, pk=None):
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "Like bosish uchun tizimga kirishingiz shart."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        post = self.get_object()
+        user = request.user
+
+        if post.likes.filter(id=user.id).exists():
+            post.likes.remove(user)
+            status_msg = "unliked"
+            status_code = status.HTTP_200_OK
+        else:
+            post.likes.add(user)
+            status_msg = "liked"
+            status_code = status.HTTP_201_CREATED
+
+        return Response(
+            {
+                "status": status_msg,
+                "total_likes": post.likes.count()
+            },
+            status=status_code
+        )
 
 #
 # @extend_schema(tags=["posts"])
@@ -243,8 +296,6 @@ class PostListCreateAPIView(ModelViewSet):
 #     serializer_class = OrderItemSerializer
 
 
-
-
 #
 #
 # @extend_schema(tags=['products'])
@@ -356,22 +407,3 @@ class PostListCreateAPIView(ModelViewSet):
 #     serializer_class = LessonSerializer
 #     permission_classes = (IsCourseOwnerOrEnrolled,)
 #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
