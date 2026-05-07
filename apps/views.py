@@ -40,7 +40,7 @@ class PostListCreateAPIView(ListCreateAPIView):
     serializer_class = PostModelSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     filterset_class = PostFilter
-    search_fields = ('title',)
+    search_fields = ('title', 'content')
     ordering_fields = ('created_at',)
     permission_classes = [IsAuthenticated, IsAuthor, CustomPostPermission]
 

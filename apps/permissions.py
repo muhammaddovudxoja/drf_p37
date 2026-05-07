@@ -1,4 +1,6 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
+
+
 # from apps.models import Enrollment
 
 class IsAuthor(BasePermission):
@@ -8,8 +10,8 @@ class IsAuthor(BasePermission):
         user = request.user
         return user.is_authenticated and obj.author == user
 
-class CustomPostPermission(BasePermission):
 
+class CustomPostPermission(BasePermission):
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
@@ -27,11 +29,6 @@ class CustomPostPermission(BasePermission):
             return obj.author == request.user or request.user.is_staff
 
         return True
-
-
-
-
-
 
 # class IsCourseOwnerOrEnrolled(BasePermission):
 #     def has_object_permission(self, request, view, obj):
@@ -53,26 +50,3 @@ class CustomPostPermission(BasePermission):
 #             return lesson.is_preview and request.method in SAFE_METHODS
 #
 #         return enrolled
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
