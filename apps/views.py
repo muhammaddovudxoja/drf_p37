@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from apps.filters import PostFilter
 from apps.models import User
 from apps.models.exammodels import Post, Like
-from apps.permissions import IsAuthor
+from apps.permissions import IsAuthor, CustomPostPermission
 from apps.serializers import UserModelSerializer, UserRegisterSerializer, PostModelSerializer
 
 
@@ -42,7 +42,7 @@ class PostListCreateAPIView(ListCreateAPIView):
     filterset_class = PostFilter
     search_fields = ('title',)
     ordering_fields = ('created_at',)
-    permission_classes = [IsAuthenticated, IsAuthor]
+    permission_classes = [IsAuthenticated, IsAuthor, CustomPostPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -63,7 +63,7 @@ class PostListCreateAPIView(ListCreateAPIView):
 class PostRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostModelSerializer
-    permission_classes = [IsAuthenticated, IsAuthor]
+    permission_classes = [IsAuthenticated, IsAuthor, CustomPostPermission]
 
 
 
