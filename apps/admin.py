@@ -18,10 +18,10 @@ class UserModelAdmin(admin.ModelAdmin):
 
 @admin.register(Post)
 class PottModelAdmin(admin.ModelAdmin):
-    list_display = ("title", "price", "category", "is_active")
-    search_fields = ("title", "description", "price")
-    list_filter = ("is_active",)
+    list_display = ('title', 'category', 'content', 'created_at', 'author', 'views_count')
+    search_fields = ("title",)
+    list_filter = ("views_count",)
     ordering = ("-created_at",)
-
+    readonly_fields = ("views_count",)
 
 admin.site.unregister(Group)
