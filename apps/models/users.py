@@ -3,7 +3,6 @@ from django.db.models import CharField, TextChoices
 
 from apps.models.managers import CustomUserManager
 
-
 class User(AbstractUser):
     phone = CharField(max_length=13, unique=True)
     class Role(TextChoices):
@@ -14,23 +13,3 @@ class User(AbstractUser):
     role = CharField(max_length=15, choices=Role.choices, default=Role.READER)
 
     objects = CustomUserManager()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
