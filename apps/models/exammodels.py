@@ -51,3 +51,6 @@ class Like(Model):
                 name='unique_like_per_post_per_user'
             )
         ]
+"""
+😊
+"""
